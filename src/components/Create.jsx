@@ -21,13 +21,19 @@ const Create = () => {
 
     const addProduct = async () => {
         try {
+            console.log('New Product Data:', newProduct); // Log the data being sent
             const response = await fetch('http://localhost:5000/api/products', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newProduct)
             });
-            if (!response.ok) throw new Error('Failed to add product');
-
+    
+            if (!response.ok) {
+                const errorData = await response.json(); // Capture the error details
+                console.error('Failed to add product:', errorData);
+                throw new Error('Failed to add product');
+            }
+    
             // Clear the form after a successful addition
             setNewProduct({
                 ProductName: '',
@@ -39,13 +45,14 @@ const Create = () => {
                 ImageURL: '',
                 SKU: ''
             });
-
+    
             // Redirect to the product page
             navigate('/products');
         } catch (error) {
-            console.error(error.message);
+            console.error('Error in addProduct:', error.message);
         }
     };
+    
 
     return (
         <div className="m-auto bg-white p-4 rounded-lg shadow-md flex-grow w-3/6 ">

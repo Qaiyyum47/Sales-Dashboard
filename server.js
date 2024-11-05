@@ -88,51 +88,65 @@ app.delete('/api/products/:id', (req, res) => {
     });
 });
 
-// Add a vendor
-app.post('/api/vendors', async (req, res) => {
-    const { VendorName, ContactName, ContactEmail, ContactPhone, Address } = req.body;
-    try {
-        const result = await db.query(
-            `INSERT INTO vendors (VendorName, ContactName, ContactEmail, ContactPhone, Address, DateAdded) 
-            VALUES (?, ?, ?, ?, ?, CURDATE())`,
-            [VendorName, ContactName, ContactEmail, ContactPhone, Address]
-        );
-
-        res.status(201).json({ message: 'Vendor added successfully', vendorId: result.insertId });
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to add vendor', error });
-    }
-});
-
 // Get all vendors
 app.get('/api/vendors', (req, res) => {
     db.query('SELECT * FROM vendors', (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
         res.json(results);
     });
 });
 
-// Get a vendor by ID
-app.get('/api/vendors/:id', (req, res) => {
-    const vendorId = req.params.id;
-    db.query('SELECT * FROM vendors WHERE VendorID = ?', [vendorId], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (results.length === 0) return res.status(404).json({ error: 'Vendor not found' });
-        res.json(results[0]);
+
+// Add vendor
+app.post('/api/vendors', (req, res) => {
+    const { VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear } = req.body;
+    const query = 'INSERT INTO Vendors (VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear) VALUES (?, ?, ?, ?, ?, ?)';
+    
+    db.query(query, [VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear], (err, results) => {
+        if (err) {
+            console.error('Error adding vendor:', err); // Log the error for debugging
+            return res.status(500).json({ message: 'Failed to add vendor', error: err.message });
+        }
+        res.status(201).json({ id: results.insertId, VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear });
     });
 });
 
-// Update a vendor
+
+
+// Update vendor
 app.put('/api/vendors/:id', (req, res) => {
     const vendorId = req.params.id;
-    const { VendorName, ContactName, ContactEmail, ContactPhone, Address } = req.body;
-    const query = 'UPDATE vendors SET VendorName = ?, ContactName = ?, ContactEmail = ?, ContactPhone = ?, Address = ? WHERE VendorID = ?';
-    db.query(query, [VendorName, ContactName, ContactEmail, ContactPhone, Address, vendorId], (err, results) => {
+    const { VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear } = req.body;
+    const query = 'UPDATE Vendors SET VendorName = ?, ContactNumber = ?, Address = ?, Email = ?, WebsiteURL = ?, EstablishedYear = ? WHERE VendorID = ?';
+
+    db.query(query, [VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear, vendorId], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.affectedRows === 0) return res.status(404).json({ error: 'Vendor not found' });
         res.json({ message: 'Vendor updated successfully' });
     });
 });
+
+
+
+
+app.post('/api/vendors', async (req, res) => {
+    const { VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear } = req.body;
+    try {
+        const result = await db.query(
+            `INSERT INTO Vendors (VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear) 
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear]
+        );
+        
+        res.status(201).json({ message: 'Vendor added successfully', vendorId: result.insertId });
+    } catch (error) {
+        console.error('Error adding vendor:', error); // Log the error for debugging
+        res.status(500).json({ message: 'Failed to add vendor', error });
+    }
+});
+
 
 // Delete a vendor by ID
 app.delete('/api/vendors/:id', (req, res) => {
@@ -148,7 +162,6 @@ app.delete('/api/vendors/:id', (req, res) => {
         res.status(204).send(); // No content to send back
     });
 });
-
 
 
 

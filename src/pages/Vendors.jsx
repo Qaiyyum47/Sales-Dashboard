@@ -52,7 +52,7 @@ const Vendors = () => {
                     throw new Error('Failed to delete product');
                 }
 
-                setVendors(vendors.filter(vendor => vendor.VendorID !== VendorId));
+                setVendors((prevVendors) => prevVendors.filter(vendor => vendor.VendorID !== vendorId));
             } catch (error) {
                 console.error("Error removing product:", error);
                 setError(error.message);
