@@ -13,13 +13,26 @@ const db = mysql.createConnection({
     decimalNumbers: true,
 });
 
-// Get all vendors
+// Backend: Route to get vendors with their total stock
 router.get('/', (req, res) => {
-    db.query('SELECT * FROM vendors', (err, results) => {
+    db.query(`
+        SELECT 
+            v.VendorName, 
+            v.ContactNumber, 
+            v.Address, 
+            v.Email, 
+            v.WebsiteURL, 
+            v.EstablishedYear, 
+            IFNULL(SUM(p.StockQuantity), 0) AS TotalStock
+        FROM Vendors v
+        LEFT JOIN Products p ON v.VendorID = p.VendorID
+        GROUP BY v.VendorName, v.ContactNumber, v.Address, v.Email, v.WebsiteURL, v.EstablishedYear
+    `, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
 });
+
 
 // Add a vendor
 router.post('/', (req, res) => {

@@ -7,14 +7,13 @@ const Vendors = () => {
     const [vendors, setVendors] = useState([]);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const navigate = useNavigate();
-
-    const [inventoryData, setInventoryData] = useState([
+    const [vendorInventoryData, setVendorInventoryData] = useState([
         { category: "Dell", stock: 120 },
         { category: "Asus", stock: 80 },
         { category: "Logitech", stock: 50 },
         { category: "Components", stock: 150 },
     ]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -24,23 +23,56 @@ const Vendors = () => {
                     throw new Error('Failed to fetch vendors');
                 }
                 const data = await response.json();
+    
+                // Update the vendors state with the fetched data
                 setVendors(data);
+    
+                // Group vendors by name and sum their total stock quantity
+                const groupedData = data.reduce((acc, vendor) => {
+                    const vendorName = vendor.VendorName;
+                    const totalStock = vendor.TotalStock;
+    
+                    // If the vendor already exists, add stock quantity to the existing total
+                    if (acc[vendorName]) {
+                        acc[vendorName] += totalStock;
+                    } else {
+                        // Otherwise, create a new entry for the vendor
+                        acc[vendorName] = totalStock;
+                    }
+    
+                    return acc;
+                }, {});
+    
+                // Convert the grouped data into an array for chart or display
+                const formattedData = Object.keys(groupedData).map(vendor => ({
+                    vendor,
+                    totalStock: groupedData[vendor]
+                }));
+    
+                // Update the vendor stock data state
+                setVendorInventoryData(formattedData);
+    
             } catch (error) {
                 console.error("Error fetching vendors:", error);
                 setError(error.message);
             }
         };
-
+    
         fetchVendors();
     }, []);
+    
 
-    // Filter vendors based on the search term
-    const filteredVendors = vendors.filter(vendor => {
-        return vendor.VendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               vendor.ContactNumber.includes(searchTerm) ||
-               vendor.Email.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+    // Filter vendors based on search term
+    const filteredVendors = vendors?.filter(vendor => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            vendor.VendorName.toLowerCase().includes(searchLower) ||
+            vendor.ContactNumber.includes(searchTerm) ||
+            vendor.Email.toLowerCase().includes(searchLower)
+        );
+    }) || [];
 
+    // Handle vendor removal
     const handleRemove = async (vendorId) => {
         if (window.confirm("Are you sure you want to remove this vendor?")) {
             try {
@@ -49,16 +81,17 @@ const Vendors = () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to delete product');
+                    throw new Error('Failed to delete vendor');
                 }
 
-                setVendors((prevVendors) => prevVendors.filter(vendor => vendor.VendorID !== vendorId));
+                setVendors(prevVendors => prevVendors.filter(vendor => vendor.VendorID !== vendorId));
             } catch (error) {
-                console.error("Error removing product:", error);
-                setError(error.message);
+                console.error("Error removing vendor:", error);
+                setError(error.message);  // Update the error state
             }
         }
     };
+
 
     return (
         <div className="overflow-x-auto p-5">
@@ -128,18 +161,21 @@ const Vendors = () => {
 
 <div className="flex flex-grow mt-6 gap-4">
     <div className="bg-white p-4 rounded-lg shadow-md flex-grow h-5/6">
-        <h2 className="text-xl font-semibold mb-3">Inventory</h2>
-        <p className="mb-6">Current stock levels across all categories.</p>
-        <ResponsiveContainer width="95%" height={300}>
-            <BarChart data={inventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="stock" fill="#8884d8" />
-            </BarChart>
-        </ResponsiveContainer>
-    </div>
+    <h2 className="text-xl font-semibold mb-3">Vendors Inventory</h2>
+    <p className="mb-6">Total stock levels across all vendors.</p>
+    <ResponsiveContainer width="95%" height={300}>
+  <BarChart data={vendorInventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="vendor" /> {/* Change vendorName to vendor */}
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="totalStock" fill="#82ca9d" />
+  </BarChart>
+</ResponsiveContainer>
+
+
+</div>
+
 
     <div className="bg-white p-4 rounded-lg shadow-md w-2/5 h-10/12">
         <h2 className="text-xl font-semibold mb-3">Performance</h2>

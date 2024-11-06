@@ -18,51 +18,39 @@ const Products = () => {
     const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
 
-    const [inventoryData, setInventoryData] = useState([
+    const [productInventoryData, setProductInventoryData] = useState([
         { category: "Laptops", stock: 120 },
         { category: "Desktops", stock: 80 },
         { category: "Accessories", stock: 50 },
         { category: "Components", stock: 150 },
     ]);
     const navigate = useNavigate();
-//Test
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch all products with their category names
+                // Fetch products and inventory data from the backend
                 const response = await fetch("http://localhost:5000/api/products");
                 if (!response.ok) {
                     throw new Error("Failed to fetch products");
                 }
                 const data = await response.json();
     
-                // Update the products state with the fetched data
-                setProducts(data);
+                console.log("Fetched Data:", data); // Log the fetched data for debugging
     
-                // Group products by category and sum their stock quantities
-                const groupedData = data.reduce((acc, product) => {
-                    const category = product.CategoryName;
-                    const stock = product.StockQuantity;
+                // Make sure the data is in the expected format
+                if (Array.isArray(data.products)) {
+                    setProducts(data.products);  // Store detailed product data
+                } else {
+                    throw new Error("Products data is not in expected format");
+                }
     
-                    // If the category already exists, add stock quantity to the existing total
-                    if (acc[category]) {
-                        acc[category] += stock;
-                    } else {
-                        // Otherwise, create a new entry for the category
-                        acc[category] = stock;
-                    }
-    
-                    return acc;
-                }, {});
-    
-                // Convert the grouped data into an array for chart display
-                const formattedData = Object.keys(groupedData).map(category => ({
-                    category,
-                    stock: groupedData[category]
-                }));
-    
-                // Update the inventory data state
-                setInventoryData(formattedData);
+                // Store inventory data (total stock per category)
+                if (Array.isArray(data.inventory)) {
+                    setProductInventoryData(data.inventory);
+                } else {
+                    throw new Error("Inventory data is not in expected format");
+                }
     
             } catch (error) {
                 setError(error.message);
@@ -272,7 +260,7 @@ const Products = () => {
                     <h2 className="text-xl font-semibold mb-3">Inventory</h2>
                     <p className="mb-6">Current stock levels across all categories.</p>
                     <ResponsiveContainer width="95%" height={300}>
-                        <BarChart data={inventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <BarChart data={productInventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="category" />
                             <YAxis />

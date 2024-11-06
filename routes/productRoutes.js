@@ -12,7 +12,7 @@ const db = mysql.createConnection({
     database: 'ecommercedb',
     decimalNumbers: true,
 });
-//Test
+//TEs
 // Backend: Route to get products with their category names and stock totals
 router.get('/', (req, res) => {
     db.query(`
