@@ -12,6 +12,9 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Invoice from './components/Invoice';
 import Create from './components/Create';
+import Modal from './components/Modal';
+import Remove from './components/Remove';
+import EditProduct from './components/EditProduct';
 import CreateVendor from './components/CreateVendor';
 
 const App = () => {
@@ -29,6 +32,9 @@ const App = () => {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/invoice" element={<Invoice />} />
                     <Route path="/create" element={<Create />} />
+                    <Route path="/modal" element={<Modal />} />
+                    <Route path="/remove" element={<Remove />} />
+                    <Route path="/editproduct" element={<EditProduct />} />
                     <Route path="/createvendor" element={<CreateVendor />} />
                     {/* Default route to redirect to Dashboard */}
                     <Route path="/" element={<Dashboard />} />

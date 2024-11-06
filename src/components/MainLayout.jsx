@@ -11,7 +11,7 @@ const MainLayout = ({ children }) => {
         userName: 'Nakamura Kazuha' // replace with actual user name
     };
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen ">
             <Sidebar />
             <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
             <Header profilePicture={userProfile.profilePicture} userName={userProfile.userName} />

@@ -37,40 +37,61 @@ app.get('/api/products', (req, res) => {
 
 // Add product
 app.post('/api/products', (req, res) => {
-    const { ProductName, Price, StockQuantity, VendorID, CategoryID } = req.body;
-    const query = 'INSERT INTO products (ProductName, Price, StockQuantity, VendorID, CategoryID) VALUES (?, ?, ?, ?, ?)';
-    db.query(query, [ProductName, Price, StockQuantity, VendorID, CategoryID], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: results.insertId, ProductName, Price, StockQuantity, VendorID, CategoryID });
-    });
+    const { ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, SKU } = req.body;
+    
+    const query = `
+        INSERT INTO Products 
+        (ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, DateAdded, SKU) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), ?)
+    `;
+
+    db.query(
+        query,
+        [ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, SKU],
+        (err, results) => {
+            if (err) {
+                console.error("Error inserting product:", err.message);
+                return res.status(500).json({ error: "Failed to add product" });
+            }
+            res.status(201).json({ 
+                message: 'Product added successfully', 
+                id: results.insertId, 
+                ProductName, 
+                Description, 
+                Price, 
+                StockQuantity, 
+                VendorID, 
+                CategoryID, 
+                ImageURL, 
+                SKU 
+            });
+        }
+    );
 });
+
 
 // Update product
 app.put('/api/products/:id', (req, res) => {
     const productId = req.params.id;
-    const { ProductName, Price, StockQuantity, VendorID, CategoryID } = req.body;
-    const query = 'UPDATE products SET ProductName = ?, Price = ?, StockQuantity = ?, VendorID = ?, CategoryID = ? WHERE ProductID = ?';
-    db.query(query, [ProductName, Price, StockQuantity, VendorID, CategoryID, productId], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (results.affectedRows === 0) return res.status(404).json({ error: 'Product not found' });
-        res.json({ message: 'Product updated successfully' });
-    });
+    const { ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, DateAdded, SKU } = req.body;
+
+    const query = `
+        UPDATE products 
+        SET ProductName = ?, Description = ?, Price = ?, StockQuantity = ?, VendorID = ?, 
+            CategoryID = ?, ImageURL = ?, DateAdded = ?, SKU = ? 
+        WHERE ProductID = ?`;
+
+    db.query(
+        query, 
+        [ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, DateAdded, SKU, productId], 
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (results.affectedRows === 0) return res.status(404).json({ error: 'Product not found' });
+            res.json({ message: 'Product updated successfully' });
+        }
+    );
 });
 
-app.post('/api/products', async (req, res) => {
-    const { ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, SKU } = req.body;
-    try {
-        const result = await db.query(
-            `INSERT INTO Products (ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, DateAdded, SKU) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), ?)`,
-            [ProductName, Description, Price, StockQuantity, VendorID, CategoryID, ImageURL, SKU]
-        );
-        
-        res.status(201).json({ message: 'Product added successfully', productId: result.insertId });
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to add product', error });
-    }
-});
 
 
 // Delete a product by ID
@@ -182,6 +203,51 @@ app.get('/api/customers', (req, res) => {
 app.get('/api/orders', (req, res) => {
     db.query('SELECT * FROM Orders', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+
+
+// Endpoint to fetch all invoices with client and item details
+app.get('/api/invoices', (req, res) => {
+    const query = `
+        SELECT 
+    Invoices.InvoiceID,
+    Invoices.InvoiceDate,
+    Customers.CustomerName,
+    Customers.ContactNumber,
+    Customers.Email,
+    Orders.OrderID,
+    Orders.OrderDate,
+    Orders.Status AS OrderStatus,
+    Orders.TotalAmount AS OrderTotalAmount,
+    Products.ProductName,
+    Products.Description AS ProductDescription,
+    Products.Price AS ProductPrice,
+    InvoiceDetails.Quantity,
+    (InvoiceDetails.Quantity * InvoiceDetails.Price) AS TotalLineAmount
+FROM 
+    Invoices
+JOIN 
+    Customers ON Invoices.CustomerID = Customers.CustomerID
+JOIN 
+    InvoiceDetails ON Invoices.InvoiceID = InvoiceDetails.InvoiceID
+JOIN 
+    Products ON InvoiceDetails.ProductID = Products.ProductID
+JOIN 
+    Orders ON Orders.CustomerID = Customers.CustomerID
+WHERE 
+    Orders.OrderDate = Invoices.InvoiceDate  -- Optional condition to match orders on the same day as invoice, if relevant
+ORDER BY 
+    Invoices.InvoiceID;
+
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
         res.json(results);
     });
 });

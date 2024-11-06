@@ -1,84 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Create = ({ onClose }) => {
-    const [newProduct, setNewProduct] = useState({
+const EditProduct = ({ product, onClose }) => {
+    
+    // Initialize state for product details
+    const [updatedProduct, setUpdatedProduct] = useState({
         ProductName: '',
         Description: '',
-        Price: '',
-        StockQuantity: '',
-        VendorID: '',
-        CategoryID: '',
+        Price: 0,
+        StockQuantity: 0,
+        VendorID: 0,
+        CategoryID: 0,
         ImageURL: '',
         SKU: ''
     });
 
+    // Set default product data if product is passed as prop
+    useEffect(() => {
+        if (product) {
+            setUpdatedProduct({
+                ProductName: product.ProductName || '',
+                Description: product.Description || '',
+                Price: product.Price || 0,
+                StockQuantity: product.StockQuantity || 0,
+                VendorID: product.VendorID || 0,
+                CategoryID: product.CategoryID || 0,
+                ImageURL: product.ImageURL || '',
+                SKU: product.SKU || ''
+            });
+        }
+    }, [product]);
+
+    // Handle form input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setNewProduct({ ...newProduct, [name]: value });
+        setUpdatedProduct(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
     };
 
-    const addProduct = async () => {
-        const productToSubmit = { ...newProduct };
-
-        // Remove fields with null, undefined, or empty values
-        for (let key in productToSubmit) {
-            if (productToSubmit[key] === null || productToSubmit[key] === '' || productToSubmit[key] === undefined) {
-                delete productToSubmit[key]; // Don't send null or empty values
-            }
-        }
-
-        console.log("Submitting Product Data:", productToSubmit); // Log cleaned data before submission
-
+    const saveProduct = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/products', {
-                method: 'POST',
+            const response = await fetch(`http://localhost:5000/api/products/${product.ProductID}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(productToSubmit)
+                body: JSON.stringify(updatedProduct)
             });
-
+    
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Failed to add product:', errorData);
-                throw new Error('Failed to add product');
+                console.error('Failed to update product:', errorData);
+                alert('Failed to update product. Please try again.');
+                return;
             }
-
-            // Reset the form after successful submission
-            setNewProduct({
-                ProductName: '',
-                Description: '',
-                Price: '',
-                StockQuantity: '',
-                VendorID: '',
-                CategoryID: '',
-                ImageURL: '',
-                SKU: ''
-            });
-
+    
             // Close modal and reload the page
             onClose();
             window.location.reload(); // Page will reload here
         } catch (error) {
-            console.error('Error in addProduct:', error.message);
+            console.error('Error updating product:', error);
+            alert('An error occurred. Please try again.');
         }
     };
+    
 
     return (
         <div className="m-auto bg-white p-6 rounded-lg shadow-lg flex-grow w-96 h-auto border-gray-300 border">
-            <h2 className="text-2xl font-bold mb-4 text-center">Add New Product</h2>
+            <h2 className="text-2xl font-bold mb-4 text-center">Edit Product</h2>
             <form 
                 className="flex flex-col gap-4" 
-                onSubmit={(e) => { 
-                    e.preventDefault(); 
-                    console.log('Form Submitted with:', newProduct); // Log form data when submitted
-                    addProduct(); 
-                }}
+                onSubmit={(e) => { e.preventDefault(); saveProduct(); }}
             >
                 <input 
                     type="text" 
                     name="ProductName" 
                     placeholder="Product Name" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800"
-                    value={newProduct.ProductName} 
+                    value={updatedProduct.ProductName} 
                     onChange={handleChange} 
                     required 
                 />
@@ -86,7 +84,7 @@ const Create = ({ onClose }) => {
                     name="Description" 
                     placeholder="Description" 
                     className="border p-2 rounded-lg shadow-sm h-24 focus:border-gray-800" 
-                    value={newProduct.Description} 
+                    value={updatedProduct.Description} 
                     onChange={handleChange} 
                     required 
                 />
@@ -95,7 +93,7 @@ const Create = ({ onClose }) => {
                     name="Price" 
                     placeholder="Price" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
-                    value={newProduct.Price} 
+                    value={updatedProduct.Price} 
                     onChange={handleChange} 
                     required 
                 />
@@ -104,7 +102,7 @@ const Create = ({ onClose }) => {
                     name="StockQuantity" 
                     placeholder="Stock Quantity" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
-                    value={newProduct.StockQuantity} 
+                    value={updatedProduct.StockQuantity} 
                     onChange={handleChange} 
                     required 
                 />
@@ -113,7 +111,7 @@ const Create = ({ onClose }) => {
                     name="VendorID" 
                     placeholder="Vendor ID" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
-                    value={newProduct.VendorID} 
+                    value={updatedProduct.VendorID} 
                     onChange={handleChange} 
                     required 
                 />
@@ -122,7 +120,7 @@ const Create = ({ onClose }) => {
                     name="CategoryID" 
                     placeholder="Category ID" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
-                    value={newProduct.CategoryID} 
+                    value={updatedProduct.CategoryID} 
                     onChange={handleChange} 
                     required 
                 />
@@ -131,7 +129,7 @@ const Create = ({ onClose }) => {
                     name="ImageURL" 
                     placeholder="Image URL" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
-                    value={newProduct.ImageURL} 
+                    value={updatedProduct.ImageURL} 
                     onChange={handleChange} 
                     required 
                 />
@@ -140,7 +138,7 @@ const Create = ({ onClose }) => {
                     name="SKU" 
                     placeholder="SKU" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
-                    value={newProduct.SKU} 
+                    value={updatedProduct.SKU} 
                     onChange={handleChange} 
                     required 
                 />
@@ -148,11 +146,11 @@ const Create = ({ onClose }) => {
                     type="submit" 
                     className="bg-gray-800 rounded-lg m-auto hover:bg-gray-700 text-white py-2 px-4 border shadow transition w-full"
                 >
-                    Add Product
+                    Save Changes
                 </button>
             </form>
         </div>
     );
 };
 
-export default Create;
+export default EditProduct;

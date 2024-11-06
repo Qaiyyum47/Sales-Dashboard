@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
-
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import Modal from '../components/Modal';
+import Create from '../components/Create';
+import Remove from '../components/Remove'; // Import Remove component
+import EditProduct from '../components/EditProduct';
 
 const Products = () => {
+    // State definitions
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const navigate = useNavigate();
+    const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false); // Separate state for Add Product modal
+    const [isRemoveProductModalOpen, setIsRemoveProductModalOpen] = useState(false); // Separate state for Remove Product modal
+    const [productToRemove, setProductToRemove] = useState(null); // Store product for removal
+    const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
     const [inventoryData, setInventoryData] = useState([
         { category: "Laptops", stock: 120 },
@@ -16,25 +24,29 @@ const Products = () => {
         { category: "Accessories", stock: 50 },
         { category: "Components", stock: 150 },
     ]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                console.log("Fetching products..."); // Check when the fetch starts
                 const response = await fetch('http://localhost:5000/api/products');
                 if (!response.ok) {
                     throw new Error('Failed to fetch products');
                 }
                 const data = await response.json();
+                console.log("Fetched products:", data); // Log fetched data
                 setProducts(data);
             } catch (error) {
                 console.error("Error fetching products:", error);
                 setError(error.message);
             }
         };
-
         fetchProducts();
     }, []);
+    
 
+    // Filter products based on search term
     const filteredProducts = products.filter(product => {
         const searchInStringFields = product.ProductName && product.ProductName.toLowerCase().includes(searchTerm.toLowerCase());
         const searchInNumberFields = 
@@ -46,24 +58,72 @@ const Products = () => {
         return searchInStringFields || searchInNumberFields;
     });
 
+    // Handle remove action
     const handleRemove = async (productId) => {
-        if (window.confirm("Are you sure you want to remove this product?")) {
-            try {
-                const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
-                    method: 'DELETE',
-                });
+        setProductToRemove(productId); // Set the product to be deleted
+        setIsRemoveProductModalOpen(true); // Open the Remove Product modal
+    };
 
-                if (!response.ok) {
-                    throw new Error('Failed to delete product');
-                }
+    //Handle edit action
+    const handleEdit = (productId) => {
+        const product = products.find(p => p.ProductID === productId);
+        setSelectedProduct(product);
+        setIsEditProductModalOpen(true); // Ensure this is set to true
+    };
 
-                setProducts(products.filter(product => product.ProductID !== productId));
-            } catch (error) {
-                console.error("Error removing product:", error);
-                setError(error.message);
-            }
+    const handleSave = async (updatedProduct) => {
+        try {
+            // Send the update request to the server
+            const response = await fetch(`http://localhost:5000/api/products/${updatedProduct.ProductID}`, {
+                method: 'PUT',
+                body: JSON.stringify(updatedProduct),
+                headers: { 'Content-Type': 'application/json' },
+            });
+    
+            // If the response is not okay, throw an error
+            if (!response.ok) throw new Error('Failed to update product');
+    
+            // Parse the response data
+            const data = await response.json();
+    
+            // Update the products state with the updated product data
+            setProducts(prevProducts => 
+                prevProducts.map(product => 
+                    product.ProductID === updatedProduct.ProductID ? { ...product, ...data } : product
+                )
+            );
+    
+            // Optionally close the modal after saving
+            setIsEditProductModalOpen(false);
+    
+        } catch (error) {
+            console.error('Error saving product:', error);
+            alert('There was an error updating the product. Please try again.');
         }
     };
+    
+    
+
+    // Confirm product removal
+    const confirmRemove = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/products/${productToRemove}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete product');
+            }
+
+            setProducts(products.filter(product => product.ProductID !== productToRemove));
+            setIsRemoveProductModalOpen(false); // Close the Remove Product modal after successful deletion
+        } catch (error) {
+            console.error('Error removing product:', error);
+            setError(error.message);
+            setIsRemoveProductModalOpen(false); // Close the Remove Product modal even on error
+        }
+    };
+
 
     return (
         <div className="overflow-x-auto p-5">
@@ -71,12 +131,17 @@ const Products = () => {
             <div className="mt-4 flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">All Products</h1>
                 <div className="flex items-center space-x-2">
-                    <button 
-                        onClick={() => navigate('/create')}
-                        className="mr-4 bg-gray-800 rounded-full hover:bg-gray-700 text-white py-2 px-4 border shadow transition"
-                    >
-                        Add Product
-                    </button>
+                    <div>
+                        <button
+                            onClick={() => setIsAddProductModalOpen(true)} // Open Add Product modal
+                            className="mr-4 bg-gray-800 rounded-full hover:bg-gray-700 text-white py-2 px-4 border shadow transition"
+                        >
+                            Add Product
+                        </button>
+                        <Modal isOpen={isAddProductModalOpen} onClose={() => setIsAddProductModalOpen(false)}>
+                            <Create onClose={() => setIsAddProductModalOpen(false)} />
+                        </Modal>
+                    </div>
                     <div className="relative">
                         <input 
                             type="text" 
@@ -132,9 +197,30 @@ const Products = () => {
                 </tbody>
             </table>
             {error && <div className="text-red-500 mt-4">{error}</div>}
-            
-            {/* Container for Analytics and List Card */}
-            <div className="flex flex-grow mt-6 gap-4">
+
+            {/* Remove modal component */}
+            {isRemoveProductModalOpen && (
+                <Remove 
+                    onClose={() => setIsRemoveProductModalOpen(false)} 
+                    onConfirm={confirmRemove} 
+                    productName={products.find(p => p.ProductID === productToRemove)?.ProductName}
+                />
+            )}
+
+{isEditProductModalOpen && selectedProduct && (
+    <Modal isOpen={isEditProductModalOpen} onClose={() => setIsEditProductModalOpen(false)}>
+        <EditProduct 
+            product={selectedProduct} 
+            onClose={() => setIsEditProductModalOpen(false)} 
+            onSave={handleSave} // Ensure onSave is correctly mapped in EditProduct
+        />
+    </Modal>
+)}
+
+
+
+             {/* Container for Analytics and List Card */}
+             <div className="flex flex-grow mt-6 gap-4">
                 
                 <div className="bg-white p-4 rounded-lg shadow-md w-2/5 h-100">
                     <h2 className="text-xl font-semibold mb-3">Popular Product</h2>
