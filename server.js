@@ -6,7 +6,8 @@ import vendorRoutes from './routes/vendorRoutes.js';
 import salesmenRoutes from './routes/salesmenRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
-import orderRoutes from './routes/orderRoutes.js';
+import revenueRoutes from './routes/revenueRoutes.js';
+
 
 
 const app = express();
@@ -20,6 +21,8 @@ app.use('/api/salesmen', salesmenRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', invoiceRoutes);
+app.use('/api/revenue', revenueRoutes);
+
 
 // Default route
 app.get('/', (req, res) => {

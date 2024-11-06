@@ -1,9 +1,12 @@
 // src/pages/Dashboard.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie } from 'recharts';
 
 
 const Dashboard = () => {
+    const [totalRevenue, setTotalRevenue] = useState(null);
+    const [todayRevenue, setTodayRevenue] = useState(null);
+    const [error, setError] = useState(null);
     // Sample data for the analytics chart
     const data = [
         { name: 'Jan', value: 4000 },
@@ -22,8 +25,61 @@ const Dashboard = () => {
             { name: 'Components', value: 20 },
             { name: 'Monitors', value: 50}
         ];
+        
+        useEffect(() => {
+            const fetchRevenue = async () => {
+                try {
+                    const response = await fetch('http://localhost:5000/api/revenue'); // Adjust the API endpoint
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch revenue');
+                    }
+                    const data = await response.json();
+                    setTotalRevenue(data.TotalRevenue); // Assuming the API returns { TotalRevenue, TodayRevenue }
+                    setTodayRevenue(data.TodayRevenue);
+                } catch (error) {
+                    console.error("Error fetching revenue:", error);
+                    setError(error.message);
+                }
+            };
     
+            fetchRevenue();
+        }, []);
 
+        useEffect(() => {
+            const fetchData = async () => {
+                try {
+                    // Fetch products and inventory data from the backend
+                    const response = await fetch("http://localhost:5000/api/products");
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch products");
+                    }
+                    const data = await response.json();
+        
+                    console.log("Fetched Data:", data); // Log the fetched data for debugging
+        
+                    // Make sure the data is in the expected format
+                    if (Array.isArray(data.products)) {
+                        setProducts(data.products);  // Store detailed product data
+                    } else {
+                        throw new Error("Products data is not in expected format");
+                    }
+        
+                    // Store inventory data (total stock per category)
+                    if (Array.isArray(data.inventory)) {
+                        setProductInventoryData(data.inventory);
+                    } else {
+                        throw new Error("Inventory data is not in expected format");
+                    }
+        
+                } catch (error) {
+                    setError(error.message);
+                    console.error("Error fetching data:", error);
+                }
+            };
+        
+            fetchData();
+        }, []);
+        
     return (
         <div className="flex flex-col p-4 h-screen">
             <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
@@ -36,7 +92,9 @@ const Dashboard = () => {
                         <h3 className="text-gray-700 text-lg">Total Revenue</h3>
                         <span className="text-green-500 text-sm">16%</span>
                     </div>
-                    <h2 className="text-2xl font-bold">$42.3k</h2>
+                    <h2 className="text-2xl font-bold">
+                    {error ? "Error loading revenue" : totalRevenue !== null ? `$${totalRevenue.toLocaleString()}` : "Loading..."}
+                    </h2>
                 </div>
 
                 <div className="square bg-white p-4 rounded-lg shadow-md">
@@ -44,7 +102,9 @@ const Dashboard = () => {
                         <h3 className="text-gray-700 text-lg">Today Revenue</h3>
                         <span className="text-green-500 text-sm">3%</span>
                     </div>
-                    <h2 className="text-2xl font-bold">$1.2k</h2>
+                    <h2 className="text-2xl font-bold">
+                    {error ? "Error loading today revenue" : todayRevenue !== null ? `$${todayRevenue.toLocaleString()}` : "Loading..."}
+                    </h2>
                 </div>
 
                 <div className="square bg-white p-4 rounded-lg shadow-md">

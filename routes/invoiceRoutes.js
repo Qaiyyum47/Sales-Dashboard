@@ -15,8 +15,7 @@ const db = mysql.createConnection({
 
 // Get all invoices
 router.get('/', (req, res) => {
-    const query = `
-        SELECT 
+    const query = `SELECT 
             Invoices.InvoiceID,
             Invoices.InvoiceDate,
             Customers.CustomerName,

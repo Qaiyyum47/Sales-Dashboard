@@ -14,7 +14,6 @@ const EditProduct = ({ product, onClose }) => {
     });
     //test
 
-    
     const [categories, setCategories] = useState([
         { CategoryID: 1, CategoryName: "Laptops" },
         { CategoryID: 2, CategoryName: "Desktops" },

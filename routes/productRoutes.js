@@ -26,6 +26,7 @@ router.get('/', (req, res) => {
             p.CategoryID, 
             p.ImageURL, 
             DATE_FORMAT(p.DateAdded, '%m-%d-%Y') AS DateAdded, 
+            SUM(p.StockQuantity) AS TotalStock,
             p.SKU, 
             c.CategoryName
         FROM Products p
