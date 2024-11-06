@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Create = ({ onClose }) => {
     const [newProduct, setNewProduct] = useState({
@@ -7,10 +7,36 @@ const Create = ({ onClose }) => {
         Price: '',
         StockQuantity: '',
         VendorID: '',
-        CategoryID: '',
+        CategoryID: '',  // Will store CategoryID selected from dropdown
         ImageURL: '',
-        SKU: ''
+        SKU: '',
+        ProductDate: new Date().toISOString().substring(0, 10) // Default to today’s date
     });
+
+
+    // Initialize the categories for the dropdown
+    const [categories, setCategories] = useState([
+        { CategoryID: 1, CategoryName: "Laptops" },
+        { CategoryID: 2, CategoryName: "Desktops" },
+        { CategoryID: 4, CategoryName: "Components" },
+        { CategoryID: 3, CategoryName: "Accessories" },
+        { CategoryID: 5, CategoryName: "Monitors" }
+    ]);
+    
+    // Fetch categories when the component mounts
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/categories');  // Adjust endpoint as necessary
+                const data = await response.json();
+                setCategories(data);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -18,16 +44,13 @@ const Create = ({ onClose }) => {
     };
 
     const addProduct = async () => {
+        // Filter out empty fields before submitting
         const productToSubmit = { ...newProduct };
-
-        // Remove fields with null, undefined, or empty values
         for (let key in productToSubmit) {
-            if (productToSubmit[key] === null || productToSubmit[key] === '' || productToSubmit[key] === undefined) {
-                delete productToSubmit[key]; // Don't send null or empty values
-            }
+            if (!productToSubmit[key]) delete productToSubmit[key];
         }
 
-        console.log("Submitting Product Data:", productToSubmit); // Log cleaned data before submission
+        console.log("Submitting Product Data:", productToSubmit);
 
         try {
             const response = await fetch('http://localhost:5000/api/products', {
@@ -36,13 +59,9 @@ const Create = ({ onClose }) => {
                 body: JSON.stringify(productToSubmit)
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Failed to add product:', errorData);
-                throw new Error('Failed to add product');
-            }
+            if (!response.ok) throw new Error('Failed to add product');
 
-            // Reset the form after successful submission
+            // Reset form fields after successful submission
             setNewProduct({
                 ProductName: '',
                 Description: '',
@@ -51,12 +70,12 @@ const Create = ({ onClose }) => {
                 VendorID: '',
                 CategoryID: '',
                 ImageURL: '',
-                SKU: ''
+                SKU: '',
+                ProductDate: new Date().toISOString().substring(0, 10)
             });
 
-            // Close modal and reload the page
-            onClose();
-            window.location.reload(); // Page will reload here
+            onClose(); // Close modal
+            window.location.reload(); // Reload page to reflect new product
         } catch (error) {
             console.error('Error in addProduct:', error.message);
         }
@@ -69,10 +88,10 @@ const Create = ({ onClose }) => {
                 className="flex flex-col gap-4" 
                 onSubmit={(e) => { 
                     e.preventDefault(); 
-                    console.log('Form Submitted with:', newProduct); // Log form data when submitted
                     addProduct(); 
                 }}
             >
+                {/* Product Name */}
                 <input 
                     type="text" 
                     name="ProductName" 
@@ -82,6 +101,8 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
+
+                {/* Description */}
                 <textarea 
                     name="Description" 
                     placeholder="Description" 
@@ -90,6 +111,8 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
+
+                {/* Price */}
                 <input 
                     type="number" 
                     name="Price" 
@@ -99,6 +122,8 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
+
+                {/* Stock Quantity */}
                 <input 
                     type="number" 
                     name="StockQuantity" 
@@ -108,6 +133,8 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
+
+                {/* Vendor ID */}
                 <input 
                     type="number" 
                     name="VendorID" 
@@ -117,15 +144,24 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
-                <input 
-                    type="number" 
+
+                {/* Category Dropdown */}
+                <select 
                     name="CategoryID" 
-                    placeholder="Category ID" 
-                    className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
                     value={newProduct.CategoryID} 
                     onChange={handleChange} 
-                    required 
-                />
+                    className="border p-2 rounded-lg shadow-sm focus:border-gray-800"
+                    required
+                >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                        <option key={category.CategoryID} value={category.CategoryID}>
+                            {category.CategoryName}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Image URL */}
                 <input 
                     type="text" 
                     name="ImageURL" 
@@ -135,6 +171,8 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
+
+                {/* SKU */}
                 <input 
                     type="text" 
                     name="SKU" 
@@ -144,6 +182,18 @@ const Create = ({ onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
+
+                {/* Date Added */}
+                <input 
+                    type="date" 
+                    name="ProductDate" 
+                    className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
+                    value={newProduct.ProductDate} 
+                    onChange={handleChange} 
+                    required 
+                />
+
+                {/* Submit Button */}
                 <button 
                     type="submit" 
                     className="bg-gray-800 rounded-lg m-auto hover:bg-gray-700 text-white py-2 px-4 border shadow transition w-full"

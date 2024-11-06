@@ -27,25 +27,54 @@ const Products = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                console.log("Fetching products..."); // Check when the fetch starts
-                const response = await fetch('http://localhost:5000/api/products');
+                // Fetch all products with their category names
+                const response = await fetch("http://localhost:5000/api/products");
                 if (!response.ok) {
-                    throw new Error('Failed to fetch products');
+                    throw new Error("Failed to fetch products");
                 }
                 const data = await response.json();
-                console.log("Fetched products:", data); // Log fetched data
+    
+                // Update the products state with the fetched data
                 setProducts(data);
+    
+                // Group products by category and sum their stock quantities
+                const groupedData = data.reduce((acc, product) => {
+                    const category = product.CategoryName;
+                    const stock = product.StockQuantity;
+    
+                    // If the category already exists, add stock quantity to the existing total
+                    if (acc[category]) {
+                        acc[category] += stock;
+                    } else {
+                        // Otherwise, create a new entry for the category
+                        acc[category] = stock;
+                    }
+    
+                    return acc;
+                }, {});
+    
+                // Convert the grouped data into an array for chart display
+                const formattedData = Object.keys(groupedData).map(category => ({
+                    category,
+                    stock: groupedData[category]
+                }));
+    
+                // Update the inventory data state
+                setInventoryData(formattedData);
+    
             } catch (error) {
-                console.error("Error fetching products:", error);
                 setError(error.message);
+                console.error("Error fetching data:", error);
             }
         };
-        fetchProducts();
+    
+        fetchData();
     }, []);
     
 
+    
     // Filter products based on search term
     const filteredProducts = products.filter(product => {
         const searchInStringFields = product.ProductName && product.ProductName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -60,12 +89,14 @@ const Products = () => {
 
     // Handle remove action
     const handleRemove = async (productId) => {
+        console.log("Handling remove for product ID:", productId); // Log when remove action is triggered
         setProductToRemove(productId); // Set the product to be deleted
         setIsRemoveProductModalOpen(true); // Open the Remove Product modal
     };
 
-    //Handle edit action
+    // Handle edit action
     const handleEdit = (productId) => {
+        console.log("Handling edit for product ID:", productId); // Log when edit action is triggered
         const product = products.find(p => p.ProductID === productId);
         setSelectedProduct(product);
         setIsEditProductModalOpen(true); // Ensure this is set to true
@@ -73,39 +104,50 @@ const Products = () => {
 
     const handleSave = async (updatedProduct) => {
         try {
+            console.log("Saving updated product:", updatedProduct); // Log before saving
+            // Only update the DateAdded if it's a new value (optional logic)
+            let updatedDate = updatedProduct.DateAdded;
+            if (updatedDate && !isNaN(new Date(updatedDate).getTime())) {
+                updatedDate = new Date(updatedDate).toISOString().slice(0, 10); // Format if valid
+                console.log("Valid Date Added:", updatedDate); // Log formatted DateAdded
+            } else {
+                updatedDate = new Date().toISOString().slice(0, 10); // Default to current date if invalid
+                console.log("Default Date Added:", updatedDate); // Log default DateAdded
+            }
+   
+            const productToSave = { ...updatedProduct, DateAdded: updatedDate };
+   
+            console.log("Product to save:", productToSave); // Log the full product object to be saved
+   
             // Send the update request to the server
-            const response = await fetch(`http://localhost:5000/api/products/${updatedProduct.ProductID}`, {
+            const response = await fetch(`http://localhost:5000/api/products/${productToSave.ProductID}`, {
                 method: 'PUT',
-                body: JSON.stringify(updatedProduct),
+                body: JSON.stringify(productToSave),
                 headers: { 'Content-Type': 'application/json' },
             });
-    
-            // If the response is not okay, throw an error
+   
             if (!response.ok) throw new Error('Failed to update product');
-    
-            // Parse the response data
+   
             const data = await response.json();
-    
-            // Update the products state with the updated product data
+            console.log("Updated product response:", data); // Log the response data from the server
+   
             setProducts(prevProducts => 
                 prevProducts.map(product => 
-                    product.ProductID === updatedProduct.ProductID ? { ...product, ...data } : product
+                    product.ProductID === productToSave.ProductID ? { ...product, ...data } : product
                 )
             );
-    
-            // Optionally close the modal after saving
+   
             setIsEditProductModalOpen(false);
-    
+   
         } catch (error) {
-            console.error('Error saving product:', error);
+            console.error('Error saving product:', error); // Log save error
             alert('There was an error updating the product. Please try again.');
         }
     };
-    
-    
 
     // Confirm product removal
     const confirmRemove = async () => {
+        console.log("Confirming removal of product ID:", productToRemove); // Log before removal
         try {
             const response = await fetch(`http://localhost:5000/api/products/${productToRemove}`, {
                 method: 'DELETE',
@@ -118,13 +160,12 @@ const Products = () => {
             setProducts(products.filter(product => product.ProductID !== productToRemove));
             setIsRemoveProductModalOpen(false); // Close the Remove Product modal after successful deletion
         } catch (error) {
-            console.error('Error removing product:', error);
+            console.error('Error removing product:', error); // Log remove error
             setError(error.message);
             setIsRemoveProductModalOpen(false); // Close the Remove Product modal even on error
         }
     };
-
-
+    
     return (
         <div className="overflow-x-auto p-5">
             <h1 className="text-3xl font-bold">Products</h1>
@@ -177,7 +218,7 @@ const Products = () => {
                                 <td className="py-4 px-4 border-b border-gray-300 text-gray-800">{product.Price}</td>
                                 <td className="py-4 px-4 border-b border-gray-300 text-gray-800">{product.StockQuantity}</td>
                                 <td className="py-4 px-4 border-b border-gray-300 text-gray-800">{product.SKU}</td>
-                                <td className="py-4 px-4 border-b border-gray-300 text-gray-800">{product.CategoryID}</td>
+                                <td className="py-4 px-4 border-b border-gray-300 text-gray-800">{product.CategoryName}</td> {/* Here is the change */}
                                 <td className="py-4 px-4 border-b border-gray-300 text-gray-800">{new Date(product.DateAdded).toLocaleDateString()}</td>
                                 <td className="py-4 px-4 border-b border-gray-300 text-gray-800 space-x-4">
                                     <button onClick={() => handleEdit(product.ProductID)} className="text-blue-500 hover:underline">
@@ -216,7 +257,6 @@ const Products = () => {
         />
     </Modal>
 )}
-
 
 
              {/* Container for Analytics and List Card */}

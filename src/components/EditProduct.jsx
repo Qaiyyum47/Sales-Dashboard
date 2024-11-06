@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 const EditProduct = ({ product, onClose }) => {
-    
-    // Initialize state for product details
     const [updatedProduct, setUpdatedProduct] = useState({
         ProductName: '',
         Description: '',
@@ -11,10 +9,35 @@ const EditProduct = ({ product, onClose }) => {
         VendorID: 0,
         CategoryID: 0,
         ImageURL: '',
+        ProductDate: '', // Initialize ProductDate here
         SKU: ''
     });
+    
 
-    // Set default product data if product is passed as prop
+    
+    const [categories, setCategories] = useState([
+        { CategoryID: 1, CategoryName: "Laptops" },
+        { CategoryID: 2, CategoryName: "Desktops" },
+        { CategoryID: 4, CategoryName: "Components" },
+        { CategoryID: 3, CategoryName: "Accessories" },
+        { CategoryID: 5, CategoryName: "Monitors" }
+    ]);
+
+    // Fetch categories when the component mounts
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/categories');  // Adjust endpoint as necessary
+                const data = await response.json();
+                setCategories(data);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
     useEffect(() => {
         if (product) {
             setUpdatedProduct({
@@ -25,12 +48,12 @@ const EditProduct = ({ product, onClose }) => {
                 VendorID: product.VendorID || 0,
                 CategoryID: product.CategoryID || 0,
                 ImageURL: product.ImageURL || '',
+                ProductDate: product.ProductDate || new Date().toISOString(),
                 SKU: product.SKU || ''
             });
         }
     }, [product]);
 
-    // Handle form input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setUpdatedProduct(prevState => ({
@@ -46,23 +69,21 @@ const EditProduct = ({ product, onClose }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedProduct)
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Failed to update product:', errorData);
                 alert('Failed to update product. Please try again.');
                 return;
             }
-    
-            // Close modal and reload the page
+
             onClose();
-            window.location.reload(); // Page will reload here
+            window.location.reload(); 
         } catch (error) {
             console.error('Error updating product:', error);
             alert('An error occurred. Please try again.');
         }
     };
-    
 
     return (
         <div className="m-auto bg-white p-6 rounded-lg shadow-lg flex-grow w-96 h-auto border-gray-300 border">
@@ -115,21 +136,38 @@ const EditProduct = ({ product, onClose }) => {
                     onChange={handleChange} 
                     required 
                 />
-                <input 
-                    type="number" 
+
+                {/* Category Dropdown */}
+                <select 
                     name="CategoryID" 
-                    placeholder="Category ID" 
-                    className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
                     value={updatedProduct.CategoryID} 
                     onChange={handleChange} 
-                    required 
-                />
+                    className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
+                    required
+                >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                        <option key={category.CategoryID} value={category.CategoryID}>
+                            {category.CategoryName}
+                        </option>
+                    ))}
+                </select>
+
                 <input 
                     type="text" 
                     name="ImageURL" 
                     placeholder="Image URL" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
                     value={updatedProduct.ImageURL} 
+                    onChange={handleChange} 
+                    required 
+                />
+                <input 
+                    type="datetime-local" 
+                    name="ProductDate" 
+                    placeholder="Product Date" 
+                    className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 
+                    value={updatedProduct.ProductDate.slice(0, 19)} // Display as date and time
                     onChange={handleChange} 
                     required 
                 />
