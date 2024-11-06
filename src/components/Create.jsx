@@ -22,6 +22,7 @@ const Create = ({ onClose }) => {
         { CategoryID: 3, CategoryName: "Accessories" },
         { CategoryID: 5, CategoryName: "Monitors" }
     ]);
+    //Test
     
     // Fetch categories when the component mounts
     useEffect(() => {

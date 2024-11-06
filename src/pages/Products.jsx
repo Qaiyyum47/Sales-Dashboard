@@ -25,7 +25,7 @@ const Products = () => {
         { category: "Components", stock: 150 },
     ]);
     const navigate = useNavigate();
-
+//Test
     useEffect(() => {
         const fetchData = async () => {
             try {

@@ -12,7 +12,7 @@ const EditProduct = ({ product, onClose }) => {
         ProductDate: '', // Initialize ProductDate here
         SKU: ''
     });
-    
+    //test
 
     
     const [categories, setCategories] = useState([
