@@ -25,27 +25,37 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
     const { SalesmanName, ContactNumber, Email, Department, HireDate, CommissionRate } = req.body;
 
+    // Validate input
+    if (!SalesmanName || !ContactNumber || !Email || !Department || !HireDate || !CommissionRate) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
     const query = `
         INSERT INTO Salesman (SalesmanName, ContactNumber, Email, Department, HireDate, CommissionRate)
         VALUES (?, ?, ?, ?, ?, ?)
     `;
     db.query(query, [SalesmanName, ContactNumber, Email, Department, HireDate, CommissionRate], (err, results) => {
-        if (err) return res.status(500).json({ error: "Failed to add salesman" });
+        if (err) return res.status(500).json({ error: "Failed to add salesman", details: err.message });
         res.status(201).json({ message: 'Salesman added successfully', id: results.insertId });
     });
 });
 
 // Update salesman details
-router.put('/:salesmanName', (req, res) => {
-    const { SalesmanName } = req.params;  // Corrected the variable to match the route parameter
-    const { ContactNumber, Email, Department, HireDate, CommissionRate } = req.body;
+router.put('/:id', (req, res) => {
+    const salesmanId = req.params.id;  // Corrected to use SalesmanID
+    const { SalesmanName, ContactNumber, Email, Department, HireDate, CommissionRate } = req.body;
+
+    // Validate input
+    if (!SalesmanName || !ContactNumber || !Email || !Department || !HireDate || !CommissionRate) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
 
     const query = `
         UPDATE Salesman 
-        SET ContactNumber = ?, Email = ?, Department = ?, HireDate = ?, CommissionRate = ? 
-        WHERE SalesmanName = ?
+        SET SalesmanName = ?, ContactNumber = ?, Email = ?, Department = ?, HireDate = ?, CommissionRate = ? 
+        WHERE SalesmanID = ?
     `;
-    db.query(query, [ContactNumber, Email, Department, HireDate, CommissionRate, SalesmanName], (err, results) => {
+    db.query(query, [SalesmanName, ContactNumber, Email, Department, HireDate, CommissionRate, salesmanId], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.affectedRows === 0) return res.status(404).json({ error: 'Salesman not found' });
         res.json({ message: 'Salesman updated successfully' });
@@ -53,10 +63,10 @@ router.put('/:salesmanName', (req, res) => {
 });
 
 // Delete a salesman
-router.delete('/:salesmanName', (req, res) => {
-    const { salesmanName } = req.params;  // Corrected the variable to match the route parameter
-    db.query('DELETE FROM Salesman WHERE SalesmanName = ?', [salesmanName], (err, result) => {
-        if (err) return res.status(500).json({ error: "Failed to delete salesman" });
+router.delete('/:id', (req, res) => {
+    const salesmanId = req.params.id;  // Corrected to use SalesmanID
+    db.query('DELETE FROM Salesman WHERE SalesmanID = ?', [salesmanId], (err, result) => {
+        if (err) return res.status(500).json({ error: "Failed to delete salesman", details: err.message });
         if (result.affectedRows === 0) return res.status(404).json({ error: "Salesman not found" });
         res.status(204).send();
     });

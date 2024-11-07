@@ -9,9 +9,6 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import revenueRoutes from './routes/revenueRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 
-
-
-
 const app = express();
 app.use(cors());
 app.use(express.json());  // Middleware for JSON body parsing

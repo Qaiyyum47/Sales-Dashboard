@@ -216,75 +216,73 @@ const navigate = useNavigate();
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-  <table className="shadow-md min-w-full border-collapse rounded-lg overflow-hidden">
-    <thead className="bg-gray-800 text-white">
-      <tr>
-        <th className="py-3 px-4 text-left border-b border-gray-300">No.</th>
-        <th className="py-3 px-4 text-left border-b border-gray-300">Name</th>
-        <th className="py-3 px-4 text-left border-b border-gray-300">Contact Number</th>
-        <th className="py-3 px-4 text-left border-b border-gray-300">Address</th>
-        <th className="py-3 px-4 text-left border-b border-gray-300">Email</th>
-        <th className="py-3 px-4 text-left border-b border-gray-300">Website</th>
-        <th className="py-3 px-4 text-left border-b border-gray-300">Action</th>
+      <table className="shadow-md min-w-full border-collapse rounded-lg overflow-hidden">
+  <thead className="bg-gray-800 text-white">
+    <tr>
+      <th className="py-3 px-4 text-left border-b border-gray-300">No.</th>
+      <th className="py-3 px-4 text-left border-b border-gray-300">Name</th>
+      <th className="py-3 px-4 text-left border-b border-gray-300">Contact Number</th>
+      <th className="py-3 px-4 text-left border-b border-gray-300">Address</th>
+      <th className="py-3 px-4 text-left border-b border-gray-300">Email</th>
+      <th className="py-3 px-4 text-left border-b border-gray-300">Website</th>
+      <th className="py-3 px-4 text-left border-b border-gray-300">Action</th>
+    </tr>
+  </thead>
+  <tbody className="bg-white">
+  {filteredVendors.length > 0 ? (
+    filteredVendors.map((vendor, index) => (
+      <tr key={vendor.VendorID}>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
+          {index + 1}
+        </td>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
+          {vendor.VendorName}
+        </td>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
+          {vendor.ContactNumber}
+        </td>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
+          {vendor.Address}
+        </td>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
+          {vendor.Email}
+        </td>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
+          <a
+            href={vendor.WebsiteURL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            {vendor.WebsiteURL}
+          </a>
+        </td>
+        <td className="py-4 px-4 border-b border-gray-300 text-gray-800 space-x-4">
+          <button
+            className="text-blue-500 hover:underline"
+            onClick={() => handleEdit(vendor.VendorID)}
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={() => handleRemove(vendor.VendorID)}
+            className="text-red-500 hover:underline"
+          >
+            <FaTrash />
+          </button>
+        </td>
       </tr>
-    </thead>
-    <tbody className="bg-white">
-      {filteredVendors.length > 0 ? (
-        filteredVendors.map((vendor, index) => (
-          <tr key={vendor.VendorID}>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-              {index + 1}
-            </td>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-              {vendor.VendorName}
-            </td>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-              {vendor.ContactNumber}
-            </td>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-              {vendor.Address}
-            </td>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-              {vendor.Email}
-            </td>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-              <a
-                href={vendor.WebsiteURL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
-              >
-                {vendor.WebsiteURL}
-              </a>
-            </td>
-            <td className="py-4 px-4 border-b border-gray-300 text-gray-800 space-x-4">
-              <button
-                className="text-blue-500 hover:underline"
-                onClick={() => handleEdit(vendor.VendorID)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                onClick={() => handleRemove(vendor.VendorID)}
-                className="text-red-500 hover:underline"
-              >
-                <FaTrash />
-              </button>
-            </td>
-          </tr>
-        ))
-      ) : (
-        <tr>
-          <td colSpan="7" className="py-4 text-center text-gray-500">
-            No vendors found
-          </td>
-        </tr>
-      )}
-    </tbody>
-  </table>
-</div>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="7" className="py-4 text-center text-gray-500">
+        No vendors found
+      </td>
+    </tr>
+  )}
+</tbody>
 
+</table>
 
 <div className="flex flex-wrap gap-4 mt-6">
   {/* Vendors Inventory */}

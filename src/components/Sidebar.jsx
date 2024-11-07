@@ -1,7 +1,7 @@
 // src/components/Sidebar.jsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaShoppingBasket, FaBox, FaStar, FaUserFriends, FaUser, FaClipboard, FaChartPie, FaCog } from 'react-icons/fa';
+import { FaShoppingBasket, FaBox, FaStar, FaUserFriends, FaUser, FaClipboard, FaCog } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 
 const Sidebar = () => {
@@ -14,7 +14,6 @@ const Sidebar = () => {
         { name: 'Customers', icon: <FaUser />, path: '/customers' },
         { name: 'Salesman', icon: <FaClipboard />, path: '/salesmen' },
         { name: 'Orders', icon: <FaShoppingBasket />, path: '/orders' },
-        { name: 'Reports', icon: <FaChartPie />, path: '/reports' },
     ];
 
     return (
