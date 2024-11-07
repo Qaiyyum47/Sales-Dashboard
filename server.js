@@ -7,6 +7,8 @@ import salesmenRoutes from './routes/salesmenRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import revenueRoutes from './routes/revenueRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
+
 
 
 
@@ -22,6 +24,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', invoiceRoutes);
 app.use('/api/revenue', revenueRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // Default route
 app.get('/', (req, res) => {

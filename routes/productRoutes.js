@@ -15,56 +15,72 @@ const db = mysql.createConnection({
 
 // Backend: Route to get products with their category names and stock totals
 router.get('/', (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const size = parseInt(req.query.size) || 10;
+    const offset = (page - 1) * size;
+
+    // First query: Get products with category names and stock totals
     db.query(`
        SELECT 
-    p.ProductID, 
-    p.ProductName, 
-    p.Description, 
-    p.Price, 
-    p.StockQuantity, 
-    SUM(p.StockQuantity) OVER () AS TotalStockQuantity,
-    p.VendorID, 
-    p.CategoryID, 
-    p.ImageURL, 
-    DATE_FORMAT(p.DateAdded, '%m-%d-%Y') AS DateAdded, 
-    p.SKU, 
-    c.CategoryName
-FROM 
-    Products p
-JOIN 
-    Categories c ON p.CategoryID = c.CategoryID;
+            p.ProductID, 
+            p.ProductName, 
+            p.Description, 
+            p.Price, 
+            p.StockQuantity, 
+            p.VendorID, 
+            p.CategoryID, 
+            p.ImageURL, 
+            DATE_FORMAT(p.DateAdded, '%m-%d-%Y') AS DateAdded, 
+            p.SKU, 
+            c.CategoryName
+        FROM 
+            Products p
+        JOIN 
+            Categories c ON p.CategoryID = c.CategoryID
+        LIMIT ? OFFSET ?`,
+        [size, offset],
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
 
-    `, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+            // Second query: Get the total count of products for pagination
+            db.query('SELECT COUNT(*) AS totalCount FROM Products', (err, countResult) => {
+                if (err) return res.status(500).json({ error: err.message });
 
-        // Calculate the total stock per category
-        const groupedData = results.reduce((acc, product) => {
-            const category = product.CategoryName;
-            const stock = product.StockQuantity;
+                const totalCount = countResult[0].totalCount;
+                const totalPages = Math.ceil(totalCount / size);
 
-            // If the category exists, add stock to existing total, otherwise create a new category entry
-            if (acc[category]) {
-                acc[category] += stock;
-            } else {
-                acc[category] = stock;
-            }
+                // Calculate the total stock per category
+                const groupedData = results.reduce((acc, product) => {
+                    const category = product.CategoryName;
+                    const stock = product.StockQuantity;
 
-            return acc;
-        }, {});
+                    // If the category exists, add stock to existing total, otherwise create a new category entry
+                    if (acc[category]) {
+                        acc[category] += stock;
+                    } else {
+                        acc[category] = stock;
+                    }
 
-        // Convert to an array for frontend use (category and total stock)
-        const inventoryData = Object.keys(groupedData).map(category => ({
-            category,
-            stock: groupedData[category]
-        }));
+                    return acc;
+                }, {});
 
-        // Send the products and inventory data in the response
-        res.json({
-            products: results,
-            inventory: inventoryData
-        });
-    });
+                // Convert to an array for frontend use (category and total stock)
+                const inventoryData = Object.keys(groupedData).map(category => ({
+                    category,
+                    stock: groupedData[category]
+                }));
+
+                // Send response with products and inventory data
+                res.json({
+                    products: results,
+                    inventory: inventoryData,
+                    totalPages: totalPages,
+                });
+            });
+        }
+    );
 });
+
 
 
 // Add a product

@@ -20,12 +20,67 @@ const Products = () => {
     const [vendors, setVendors] = useState([]);
     const [vendorInventoryData, setVendorInventoryData] = useState([]);
     const [productInventoryData, setProductInventoryData] = useState([]);
+    const [productInventoryData1, setProductInventoryData1] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(8);
+    const [totalPages, setTotalPages] = useState(0);
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch products with pagination parameters
+                const response = await fetch(`http://localhost:5000/api/products?page=${currentPage}&size=${pageSize}`);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch products");
+                }
+                const data = await response.json();
+    
+                console.log("Fetched Data:", data); // Log the fetched data for debugging
+    
+                // Handle product data
+                if (Array.isArray(data.products)) {
+                    setProducts(data.products);  // Store product data
+                } else {
+                    throw new Error("Products data is not in expected format");
+                }
+    
+                // Handle inventory data
+                if (Array.isArray(data.inventory)) {
+                    setProductInventoryData(data.inventory);  // Store inventory data
+                } else {
+                    throw new Error("Inventory data is not in expected format");
+                }
+
+                // Set total pages for pagination
+                if (data.totalPages) {
+                    setTotalPages(data.totalPages);  // Store the total number of pages
+                } else {
+                    throw new Error("Total pages data is missing");
+                }
+    
+            } catch (error) {
+                setError(error.message);
+                console.error("Error fetching data:", error);
+            }
+        };
+
+        fetchData();
+    }, [currentPage, pageSize]);  // Re-fetch when currentPage or pageSize changes
+    
+    const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+    const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+
+    const handlePageSizeChange = (e) => {
+        setPageSize(Number(e.target.value));  // Set page size to the selected value
+        setCurrentPage(1);  // Reset to page 1 when page size changes
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // Fetch products and inventory data from the backend
-                const response = await fetch("http://localhost:5000/api/products");
+                const response = await fetch("http://localhost:5000/api/inventory");
                 if (!response.ok) {
                     throw new Error("Failed to fetch products");
                 }
@@ -42,7 +97,7 @@ const Products = () => {
     
                 // Store inventory data (total stock per category)
                 if (Array.isArray(data.inventory)) {
-                    setProductInventoryData(data.inventory);
+                    setProductInventoryData1(data.inventory);
                 } else {
                     throw new Error("Inventory data is not in expected format");
                 }
@@ -55,8 +110,6 @@ const Products = () => {
     
         fetchData();
     }, []);
-    
-
     
     // Filter products based on search term
     const filteredProducts = products.filter(product => {
@@ -261,7 +314,24 @@ const Products = () => {
                     )}
                 </tbody>
             </table>
-            {error && <div className="text-red-500 mt-4">{error}</div>}
+            <div className="flex justify-center items-center space-x-4 py-4">
+    <button
+        onClick={handlePrevPage}
+        disabled={currentPage === 1}
+        className="bg-gray-700 text-white py-2 px-4 rounded-lg border shadow transition hover:bg-gray-800"
+    >
+        Prev
+    </button>
+    <span className="text-gray-800">{currentPage} / {totalPages}</span>
+    <button
+        onClick={handleNextPage}
+        disabled={currentPage === totalPages}
+        className="bg-gray-800 text-white py-2 px-4 rounded-lg border shadow transition hover:bg-gray-700"
+    >
+        Next
+    </button>
+</div>
+{error && <div className="text-red-500 mt-4 text-center">{error}</div>}
 
             {/* Remove modal component */}
             {isRemoveProductModalOpen && (
@@ -306,7 +376,7 @@ const Products = () => {
                     <h2 className="text-xl font-semibold mb-3">Inventory</h2>
                     <p className="mb-6">Current stock levels across all categories.</p>
                     <ResponsiveContainer width="95%" height={300}>
-                        <BarChart data={productInventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} >
+                        <BarChart data={productInventoryData1} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="category" />
                             <YAxis />
