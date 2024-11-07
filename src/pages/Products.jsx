@@ -17,14 +17,9 @@ const Products = () => {
     const [productToRemove, setProductToRemove] = useState(null); // Store product for removal
     const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
-
-    const [productInventoryData, setProductInventoryData] = useState([
-        { category: "Laptops", stock: 120 },
-        { category: "Desktops", stock: 80 },
-        { category: "Accessories", stock: 50 },
-        { category: "Components", stock: 150 },
-    ]);
-    const navigate = useNavigate();
+    const [vendors, setVendors] = useState([]);
+    const [vendorInventoryData, setVendorInventoryData] = useState([]);
+    const [productInventoryData, setProductInventoryData] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -154,10 +149,51 @@ const Products = () => {
         }
     };
     
+    useEffect(() => {
+        const fetchVendors = async () => {
+          try {
+            const response = await fetch('http://localhost:5000/api/vendors'); 
+            if (!response.ok) {
+              throw new Error('Failed to fetch vendors');
+            }
+            const data = await response.json();
+            setVendors(data);
+      
+            // Group vendors by name and sum their total stock quantity
+            const groupedData = data.reduce((acc, vendor) => {
+              const vendorName = vendor.VendorName;
+              const totalStock = vendor.TotalStock;
+      
+              if (acc[vendorName]) {
+                acc[vendorName] += totalStock;
+              } else {
+                acc[vendorName] = totalStock;
+              }
+      
+              return acc;
+            }, {});
+      
+            const formattedData = Object.keys(groupedData).map(vendor => ({
+              vendor,
+              totalStock: groupedData[vendor]
+            }));
+      
+            setVendorInventoryData(formattedData); // Set data for the chart
+      
+          } catch (error) {
+            console.error("Error fetching vendors:", error);
+            setError(error.message);
+          }
+        };
+      
+        fetchVendors();
+      }, []);
+
+      
     return (
         <div className="overflow-x-auto p-5">
             <h1 className="text-3xl font-bold">Products</h1>
-            <div className="mt-4 flex justify-between items-center mb-4">
+            <div className="my-4 flex justify-between items-center">
                 <h1 className="text-2xl font-bold">All Products</h1>
                 <div className="flex items-center space-x-2">
                     <div>
@@ -251,8 +287,18 @@ const Products = () => {
              <div className="flex flex-grow mt-6 gap-4">
                 
                 <div className="bg-white p-4 rounded-lg shadow-md w-2/5 h-100">
-                    <h2 className="text-xl font-semibold mb-3">Popular Product</h2>
-                    <p className="mb-6">Current trending product in shop.</p>
+                    <h2 className="text-xl font-semibold mb-3">Vendor Inventory</h2>
+                    <p className="mb-6">Total stock levels across all vendors.</p>
+                    <ResponsiveContainer width="95%" height={300}>
+  <BarChart data={vendorInventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="vendor" /> {/* Displaying vendor names */}
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="totalStock" fill="#82ca9d" />
+  </BarChart>
+</ResponsiveContainer>
+
                 </div>
 
                 {/* Analytics Square */}
@@ -260,7 +306,7 @@ const Products = () => {
                     <h2 className="text-xl font-semibold mb-3">Inventory</h2>
                     <p className="mb-6">Current stock levels across all categories.</p>
                     <ResponsiveContainer width="95%" height={300}>
-                        <BarChart data={productInventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <BarChart data={productInventoryData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="category" />
                             <YAxis />

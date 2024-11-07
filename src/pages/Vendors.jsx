@@ -275,8 +275,8 @@ const Vendors = () => {
       </Modal>
 
       <div className="bg-white p-4 rounded-lg shadow-md w-2/5 h-10/12">
-        <h2 className="text-xl font-semibold mb-3">Performance</h2>
-        <p className="mb-6">Each category performance</p>
+        <h2 className="text-xl font-semibold mb-3">Vendor Order</h2>
+        <p className="mb-6">Each vendor stock order status.</p>
 
         {/* Vendor Orders Table */}
         <table className="shadow-md min-w-full border-collapse rounded-lg overflow-hidden">

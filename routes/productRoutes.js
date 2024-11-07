@@ -12,25 +12,28 @@ const db = mysql.createConnection({
     database: 'ecommercedb',
     decimalNumbers: true,
 });
-//TEs
+
 // Backend: Route to get products with their category names and stock totals
 router.get('/', (req, res) => {
     db.query(`
-        SELECT 
-            p.ProductID, 
-            p.ProductName, 
-            p.Description, 
-            p.Price, 
-            p.StockQuantity, 
-            p.VendorID, 
-            p.CategoryID, 
-            p.ImageURL, 
-            DATE_FORMAT(p.DateAdded, '%m-%d-%Y') AS DateAdded, 
-            SUM(p.StockQuantity) AS TotalStock,
-            p.SKU, 
-            c.CategoryName
-        FROM Products p
-        JOIN Categories c ON p.CategoryID = c.CategoryID
+       SELECT 
+    p.ProductID, 
+    p.ProductName, 
+    p.Description, 
+    p.Price, 
+    p.StockQuantity, 
+    SUM(p.StockQuantity) OVER () AS TotalStockQuantity,
+    p.VendorID, 
+    p.CategoryID, 
+    p.ImageURL, 
+    DATE_FORMAT(p.DateAdded, '%m-%d-%Y') AS DateAdded, 
+    p.SKU, 
+    c.CategoryName
+FROM 
+    Products p
+JOIN 
+    Categories c ON p.CategoryID = c.CategoryID;
+
     `, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
 

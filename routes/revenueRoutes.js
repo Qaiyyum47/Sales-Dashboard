@@ -13,17 +13,29 @@ const db = mysql.createConnection({
 });
 
 router.get('/', (req, res) => {
-    db.query('SELECT TotalRevenue, TodayRevenue FROM RevenueData', (err, results) => {
+    console.log("Revenue route hit1");
+    db.query(`SELECT 
+    Date, 
+    MonthRevenue, 
+    ItemSold,
+    SUM(MonthRevenue) OVER () AS TotalRevenue,
+    SUM(ItemSold) OVER () AS ItemSold,
+    ROUND((MonthRevenue * 100.0 / SUM(MonthRevenue) OVER ()), 1) AS RevenuePercentage
+    FROM RevenueData;`, 
+    (err, results) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
+
         if (results.length > 0) {
-            const { TotalRevenue, TodayRevenue } = results[0];
-            res.json({ TotalRevenue, TodayRevenue });
+            res.json(results); // All rows include TotalRevenue
         } else {
             res.status(404).json({ error: "No revenue data found" });
         }
     });
 });
+
+
+
 
 export default router;

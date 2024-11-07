@@ -23,7 +23,6 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', invoiceRoutes);
 app.use('/api/revenue', revenueRoutes);
 
-
 // Default route
 app.get('/', (req, res) => {
     res.send('Welcome to the E-Commerce API!');
