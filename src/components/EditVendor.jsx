@@ -104,7 +104,7 @@ const EditVendor = ({ vendor, onClose }) => {
                     required 
                 />
                 <input 
-                    type="url" 
+                    type="text" 
                     name="WebsiteURL" 
                     placeholder="Website URL" 
                     className="border p-2 rounded-lg shadow-sm focus:border-gray-800" 

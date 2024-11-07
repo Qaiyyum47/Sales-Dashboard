@@ -1,4 +1,3 @@
-// routes/vendorRoutes.js
 import express from 'express';
 import mysql from 'mysql2';
 
@@ -13,22 +12,38 @@ const db = mysql.createConnection({
     decimalNumbers: true,
 });
 
+// Check database connection
+db.connect((err) => {
+    if (err) {
+        console.error('Error connecting to the database:', err.message);
+        process.exit(1); // Exit if DB connection fails
+    }
+    console.log('Connected to the database');
+});
+
 // Backend: Route to get vendors with their total stock
 router.get('/', (req, res) => {
-    db.query(`
+    const query = `
         SELECT 
+            v.VendorID,
             v.VendorName, 
             v.ContactNumber, 
             v.Address, 
             v.Email, 
             v.WebsiteURL, 
             v.EstablishedYear, 
+            v.AmountOfPackages, 
+            v.ShippingStatus, 
             IFNULL(SUM(p.StockQuantity), 0) AS TotalStock
         FROM Vendors v
         LEFT JOIN Products p ON v.VendorID = p.VendorID
-        GROUP BY v.VendorName, v.ContactNumber, v.Address, v.Email, v.WebsiteURL, v.EstablishedYear
-    `, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+        GROUP BY v.VendorID, v.VendorName, v.ContactNumber, v.Address, v.Email, v.WebsiteURL, v.EstablishedYear
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error fetching vendors', details: err.message });
+        }
         res.json(results);
     });
 });
@@ -37,10 +52,13 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
     const { VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear } = req.body;
 
-    // Query to insert vendor data into the database
+    // Validate input
+    if (!VendorName || !ContactNumber || !Address || !Email || !WebsiteURL || !EstablishedYear) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
     const query = `
-        INSERT INTO Vendors 
-        (VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear) 
+        INSERT INTO Vendors (VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear)
         VALUES (?, ?, ?, ?, ?, ?)
     `;
 
@@ -48,8 +66,6 @@ router.post('/', (req, res) => {
         if (err) {
             return res.status(500).json({ message: 'Failed to add vendor', error: err.message });
         }
-
-        // Return success response with vendor ID and name
         res.status(201).json({ message: 'Vendor added successfully', id: results.insertId, VendorName });
     });
 });
@@ -59,18 +75,24 @@ router.put('/:id', (req, res) => {
     const vendorId = req.params.id;
     const { VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear } = req.body;
 
-    // Query to update vendor data in the database
+    // Validate input
+    if (!VendorName || !ContactNumber || !Address || !Email || !WebsiteURL || !EstablishedYear) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
     const query = `
         UPDATE Vendors 
-        SET VendorName = ?, ContactNumber = ?, Address = ?, Email = ?, WebsiteURL = ?, EstablishedYear = ? 
+        SET VendorName = ?, ContactNumber = ?, Address = ?, Email = ?, WebsiteURL = ?, EstablishedYear = ?
         WHERE VendorID = ?
     `;
 
     db.query(query, [VendorName, ContactNumber, Address, Email, WebsiteURL, EstablishedYear, vendorId], (err, results) => {
-        if (err) return res.status(500).json({ message: 'Failed to update vendor', error: err.message });
-        if (results.affectedRows === 0) return res.status(404).json({ message: 'Vendor not found' });
-
-        // Return success response
+        if (err) {
+            return res.status(500).json({ message: 'Failed to update vendor', error: err.message });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ message: 'Vendor not found' });
+        }
         res.json({ message: 'Vendor updated successfully' });
     });
 });
@@ -79,15 +101,17 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
     const vendorId = req.params.id;
 
-    // Query to delete vendor from the database
-    db.query('DELETE FROM Vendors WHERE VendorID = ?', [vendorId], (err, result) => {
-        if (err) return res.status(500).json({ message: 'Failed to delete vendor', error: err.message });
-        if (result.affectedRows === 0) return res.status(404).json({ message: 'Vendor not found' });
+    const query = 'DELETE FROM Vendors WHERE VendorID = ?';
 
-        // Return success response for deletion
-        res.status(204).send();
+    db.query(query, [vendorId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to delete vendor', error: err.message });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Vendor not found' });
+        }
+        res.status(204).send(); // No content
     });
 });
-
 
 export default router;
