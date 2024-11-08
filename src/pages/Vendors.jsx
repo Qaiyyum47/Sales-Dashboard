@@ -341,7 +341,7 @@ const navigate = useNavigate();
             <th className="py-3 px-4 text-left border-b border-gray-300">Order ID</th>
             <th className="py-3 px-4 text-left border-b border-gray-300">Vendor</th>
             <th className="py-3 px-4 text-left border-b border-gray-300">Shipping Status</th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">Total Stock</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Package</th>
           </tr>
         </thead>
         <tbody className="bg-white">

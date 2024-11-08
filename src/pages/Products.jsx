@@ -438,7 +438,7 @@ const Products = () => {
               <XAxis dataKey="vendor" /> {/* Displaying vendor names */}
               <YAxis />
               <Tooltip />
-              <Bar dataKey="totalStock" fill="#82ca9d" />
+              <Bar dataKey="totalStock" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         </div>
