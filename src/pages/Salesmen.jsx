@@ -42,7 +42,7 @@ const Salesmen = () => {
   return (
     <div className="overflow-x-auto p-5">
       <h1 className="text-3xl font-bold">Salesmen</h1>
-      <div className="mt-4 flex justify-between items-center mb-4">
+      <div className="mt-1 mb-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold">All Salesmen</h1>
         <div className="flex items-center space-x-2">
           <div>

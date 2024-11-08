@@ -6,11 +6,11 @@ import Invoice from "../components/Invoice";
 const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal open state
   const [orders, setOrders] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-
+  const [selectedOrderId, setSelectedOrderId] = useState(null); // Store only the selected order ID
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Fetch orders data from the API
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
@@ -32,74 +32,43 @@ const Orders = () => {
   }, []);
 
   // Handle the selection of a customer and open the modal
-  const handleSelected = (customerName) => {
-    console.log("Handling select for customer:", customerName); // Log when customer is selected
-    const customerOrder = orders.find(
-      (order) => order.CustomerName === customerName
-    );
-    setSelectedCustomer(customerOrder);
-    setIsModalOpen(true); // Open the modal when customer is selected
+  const handleSelected = (orderId) => {
+    setSelectedOrderId(orderId); // Set the selected order ID
+    setIsModalOpen(true); // Open the modal when an order is selected
   };
-
-  const openModal = (order) => {
-    setSelectedOrder(order);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedOrder(null); // Clear the selected order data
-    setInvoiceContent(null); // Clear the invoice content
-    setIsModalOpen(false); // Close the modal
-  };
-
-  const filteredOrders = orders.filter((order) => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    return (
-      order.Status?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      order.ShippingAddress?.toLowerCase().includes(lowerCaseSearchTerm)
-    );
-  });
 
   if (loading) {
     return <div className="text-center">Loading orders...</div>;
   }
 
+  // Fallback for no orders
+  if (orders.length === 0) {
+    return <div>No orders available</div>;
+  }
+
   return (
     <div className="overflow-x-auto p-5">
       <h1 className="text-3xl font-bold">Orders</h1>
+      <h1 className="mt-1 mb-4 text-2xl font-bold">All Orders</h1>
+
+      {/* Table for displaying orders */}
       <table className="shadow-md min-w-full border-collapse rounded-lg overflow-hidden mt-4">
         <thead className="bg-gray-800 text-white">
           <tr>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              No.
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Customer Name
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Contact Number
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Email
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Order Date
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Status
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Quantity
-            </th>
-            <th className="py-3 px-4 text-left border-b border-gray-300">
-              Invoice
-            </th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">No.</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Customer Name</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Contact Number</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Email</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Order Date</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Status</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Quantity</th>
+            <th className="py-3 px-4 text-left border-b border-gray-300">Invoice</th>
           </tr>
         </thead>
         <tbody className="bg-white">
           {orders.map((order, index) => (
             <tr
-              key={`${order.OrderID}-${index}`}
+              key={order.OrderID}
               className="hover:bg-gray-100 transition-all duration-200"
             >
               <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
@@ -112,7 +81,7 @@ const Orders = () => {
                 {order.ContactNumber}
               </td>
               <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
-                {order.Email}
+                {order.EmailAddress}
               </td>
               <td className="py-4 px-4 border-b border-gray-300 text-gray-800">
                 {new Date(order.OrderDate).toLocaleDateString()}
@@ -125,22 +94,28 @@ const Orders = () => {
               </td>
               <td className="py-4 px-4 border-b border-gray-300 text-blue-600">
                 <button
-                  onClick={() => handleSelected(order.CustomerName)}
+                  onClick={() => handleSelected(order.OrderID)} // Pass only OrderID
                   className="text-blue-500 underline"
                 >
                   View Invoice
                 </button>
               </td>
-              <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                <Invoice
-                  selectedCustomer={selectedCustomer}
-                  onClose={() => setIsModalOpen(false)}
-                />
-              </Modal>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Modal for invoice */}
+      {isModalOpen && selectedOrderId && (
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <Invoice
+            orderId={selectedOrderId} // Pass only the orderId
+            onClose={() => setIsModalOpen(false)}
+          />
+        </Modal>
+      )}
+
+      {/* Error message */}
       {error && <div className="text-red-500 mt-4">{error}</div>}
     </div>
   );

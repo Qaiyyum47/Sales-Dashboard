@@ -119,8 +119,8 @@ const Dashboard = () => {
 
   return (
     <div className="flex flex-col p-4 h-screen">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <h1 className=" my-4 text-2xl font-bold">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+      <h1 className=" mt-1 mb-4 text-2xl font-bold">
         Inventory & Revenue Dashboard
       </h1>
       {/* Stat Cards Section */}

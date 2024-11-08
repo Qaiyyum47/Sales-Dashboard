@@ -39,14 +39,10 @@ const Sidebar = () => {
             </ul>
             <div className="mt-auto">
                 <hr className="border-t border-gray-600 mb-2" />
-                <Link
-                    to="/settings"
-                    className={`flex items-center py-3 px-4 rounded-lg transition-colors duration-200 
-                        ${location.pathname === '/settings' ? 'bg-gray-700 text-indigo-300' : 'hover:bg-gray-800'}`}
-                >
+                <div className={`flex items-center py-3 px-4 rounded-lg transition-colors duration-200 text-white hover:bg-gray-800`}>
                     <FaCog />
                     <span className="ml-3 text-base">Settings</span>
-                </Link>
+                </div>
             </div>
         </div>
     );

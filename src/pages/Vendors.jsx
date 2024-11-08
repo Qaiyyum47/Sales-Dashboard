@@ -98,6 +98,7 @@ const navigate = useNavigate();
     const vendor = vendors.find((p) => p.VendorID === vendorId);
     setSelectedVendor(vendor);
     setIsEditVendorModalOpen(true); // Ensure this is set to true
+    console.log("Handling edit for vendor ID:", vendorId);
   };
 
   const handleSave = async (updatedVendor) => {
@@ -181,11 +182,10 @@ const navigate = useNavigate();
   };
   
 
-  
   return (
     <div className="overflow-x-auto p-5">
       <h1 className="text-3xl font-bold">Vendors</h1>
-      <div className="mt-4 flex justify-between items-center mb-4">
+      <div className="mt- mb-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold">All Vendors</h1>
         <div className="flex items-center space-x-2">
           <div>
@@ -283,6 +283,32 @@ const navigate = useNavigate();
 </tbody>
 
 </table>
+
+{/* Remove Vendor Modal */}
+{isRemoveVendorModalOpen && (
+  <RemoveVendor
+    onClose={() => setIsRemoveVendorModalOpen(false)} // Close modal when clicked
+    onConfirm={confirmRemove} // Function to handle the removal
+    vendorName={
+      vendors.find((v) => v.VendorID === vendorToRemove)?.VendorName
+    }
+  />
+)}
+
+{/* Edit Vendor Modal */}
+{isEditVendorModalOpen && selectedVendor && (
+  <Modal
+    isOpen={isEditVendorModalOpen}
+    onClose={() => setIsEditVendorModalOpen(false)} // Close modal when clicked
+  >
+    <EditVendor
+      vendor={selectedVendor} // Pass the selected vendor to the EditVendor component
+      onClose={() => setIsEditVendorModalOpen(false)} // Function to close modal
+      onSave={handleSave} // Function to save vendor edits
+    />
+  </Modal>
+)}
+
 
 <div className="flex flex-wrap gap-4 mt-6">
   {/* Vendors Inventory */}

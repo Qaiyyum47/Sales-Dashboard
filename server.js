@@ -6,6 +6,7 @@ import vendorRoutes from './routes/vendorRoutes.js';
 import salesmenRoutes from './routes/salesmenRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
+import ordersRoutes from './routes/orderRoutes.js';
 import revenueRoutes from './routes/revenueRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 
@@ -19,7 +20,7 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/salesmen', salesmenRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/invoices', invoiceRoutes);
-app.use('/api/orders', invoiceRoutes);
+app.use('/api/orders', ordersRoutes);
 app.use('/api/revenue', revenueRoutes);
 app.use('/api/inventory', inventoryRoutes);
 

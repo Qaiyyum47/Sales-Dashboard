@@ -15,7 +15,34 @@ const db = mysql.createConnection({
 
 // Get all customers
 router.get('/', (req, res) => {
-    db.query('SELECT * FROM orders', (err, results) => {
+    db.query(`
+        SELECT 
+    c.CustomerName AS CustomerName,
+    c.ContactNumber AS ContactNumber,
+    c.Email AS EmailAddress,
+    c.Address AS Address,
+    i.InvoiceID AS InvoiceID,
+    i.InvoiceDate AS InvoiceDate,
+    o.OrderID AS OrderID,
+    o.OrderDate AS OrderDate,
+    o.Status AS OrderStatus,
+    o.TotalAmount AS TotalOrderAmount,
+    i.SalesmanID AS SalesmanID,
+    p.ProductName AS ProductName,
+    id.Quantity AS Quantity,
+    id.Price AS ProductPrice,
+    (id.Quantity * id.Price) AS TotalLineAmount
+FROM 
+    Customers c
+JOIN 
+    Invoices i ON c.CustomerID = i.CustomerID
+JOIN 
+    InvoiceDetails id ON i.InvoiceID = id.InvoiceID
+JOIN 
+    Products p ON id.ProductID = p.ProductID
+JOIN 
+    Orders o ON c.CustomerID = o.CustomerID;`
+        , (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });

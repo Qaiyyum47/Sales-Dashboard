@@ -7,7 +7,6 @@ import Vendors from './pages/Vendors';
 import Customers from './pages/Customers';
 import Salesmen from './pages/Salesmen';
 import Orders from './pages/Orders';
-import Settings from './pages/Settings';
 import Invoice from './components/Invoice';
 import Create from './components/Create';
 import CreateVendor from './components/CreateVendor';
@@ -29,7 +28,6 @@ const App = () => {
                     <Route path="/customers" element={<Customers />} />
                     <Route path="/salesmen" element={<Salesmen />} />
                     <Route path="/orders" element={<Orders />} />
-                    <Route path="/settings" element={<Settings />} />
                     <Route path="/invoice" element={<Invoice />} />
                     <Route path="/create" element={<Create />} />
                     <Route path="/modal" element={<Modal />} />

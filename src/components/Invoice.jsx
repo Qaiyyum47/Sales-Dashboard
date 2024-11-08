@@ -1,87 +1,110 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 
-const Invoice = ({ selectedCustomer }) => {
-  const [loading, setLoading] = useState(false);
+const Invoice = ({ orderId, onClose }) => {
+  const [invoiceData, setInvoiceData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!selectedCustomer) return;
-  }, [selectedCustomer]);
+    const fetchInvoice = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/invoices/${orderId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch invoice data");
+        }
+        const data = await response.json();
+        setInvoiceData(data); // Assuming the response has the invoice data
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!selectedCustomer) {
-    return <div>No order selected</div>;
+    if (orderId) {
+      fetchInvoice();
+    }
+  }, [orderId]);
+
+  if (loading) {
+    return <div>Loading invoice...</div>;
   }
 
-  const orderDetails = selectedCustomer; // Use selectedCustomer passed from the parent
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (!invoiceData) {
+    return <div>No invoice data available</div>;
+  }
+
+  // Check if Products is available and is an array before mapping
+  const products = Array.isArray(invoiceData.Products) ? invoiceData.Products : [];
 
   return (
-    <div className="m-auto bg-white p-6 rounded-lg shadow-lg flex-grow w-11/12 h-auto border-gray-300 border">
-      {orderDetails && (
-        <div>
-          <div className="flex justify-between items-center">
-            <div className="text-left">
-              <p className="font-bold text-gray-800">Bill to :</p>
-              <p className="text-gray-500">
-                {orderDetails.CustomerName}<br />
-                {orderDetails.ContactNumber}<br />
-                {orderDetails.Email}
-              </p>
-            </div>
-            <div className="text-right">
-              <p>Invoice number: <span className="text-gray-500">{orderDetails.InvoiceID}</span></p>
-              <p>
-                Invoice date: <span className="text-gray-500">{new Date(orderDetails.InvoiceDate).toLocaleDateString()}</span><br />
-                Due date: <span className="text-gray-500">{new Date(orderDetails.OrderDate).toLocaleDateString()}</span>
-              </p>
-            </div>
-          </div>
+    <div className="bg-white p-8 rounded-lg shadow-md max-w-3xl mx-auto">
+  <h2 className="text-2xl font-bold mb-6 text-center">Invoice Details</h2>
 
-          <div className="-mx-4 mt-8 flow-root sm:mx-0">
-            <table className="min-w-full">
-              <colgroup>
-                <col className="w-full sm:w-1/2" />
-                <col className="sm:w-1/6" />
-                <col className="sm:w-1/6" />
-                <col className="sm:w-1/6" />
-              </colgroup>
-              <thead className="border-b border-gray-300 text-gray-900">
-                <tr>
-                  <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Items</th>
-                  <th scope="col" className="hidden px-3 py-3.5 text-right text-sm font-semibold text-gray-900 sm:table-cell">Quantity</th>
-                  <th scope="col" className="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">Price</th>
-                  <th scope="col" className="hidden px-3 py-3.5 text-right text-sm font-semibold text-gray-900 sm:table-cell">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
-                    <div className="font-medium text-gray-900 text-left">{orderDetails.ProductName}</div>
-                    <div className="mt-1 truncate text-gray-500 text-left">{orderDetails.ProductDescription}</div>
-                  </td>
-                  <td className="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{orderDetails.Quantity}</td>
-                  <td className="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">${orderDetails.ProductPrice.toFixed(2)}</td>
-                  <td className="py-5 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-0">${orderDetails.TotalLineAmount.toFixed(2)}</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th scope="row" colSpan="3" className="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell sm:pl-0">Subtotal</th>
-                  <th scope="row" className="pl-6 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">Subtotal</th>
-                  <td className="pl-3 pr-6 pt-6 text-right text-sm text-gray-500 sm:pr-0">${orderDetails.TotalLineAmount.toFixed(2)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          <div className="border-t-2 pt-4 text-xs text-gray-500 text-center mt-16">
-            Please pay the invoice before the due date. You can pay the invoice by logging in to your account from our client portal.
-          </div>
-        </div>
-      )}
+  {/* Invoice Header */}
+<div className="border-b pb-4 mb-4 text-start">
+  <div className="flex justify-between mb-2">
+    <p className="font-bold">Bill To</p>
+    <p className="font-bold text-end">Contact</p>
+  </div>
+  <div className="flex justify-between text-sm">
+    <div className="flex flex-col">
+      <p className="text-sm">{invoiceData.CustomerName}</p>
+      <div className="w-3/6 py-1 break-words">
+        <p className="text-sm">{invoiceData.Address}</p>
+      </div>
+      <p className="text-sm">{invoiceData.ContactNumber}</p>   
     </div>
+    <div className="flex flex-col text-end">
+      <p className="text-sm">{invoiceData.EmailAddress}</p>
+      <p className="text-sm">{invoiceData.ContactNumber}</p>
+      <p className="text-sm">Invoice#{invoiceData.InvoiceID}</p>
+      <p className="text-sm">{new Date(invoiceData.OrderDate).toISOString().split('T')[0]}</p>
+    </div>
+  </div>
+</div>
+
+
+  {/* Invoice Details */}
+  <div className="border-b pb-4 mb-4">
+    <div className="flex justify-between text-sm">
+      <p><strong>Order Status:</strong></p>
+      <p>{invoiceData.OrderStatus}</p>
+    </div>
+    <div className="flex justify-between text-sm">
+      <p><strong>Product:</strong></p>
+      <p>{invoiceData.ProductName}</p>
+    </div>
+    <div className="flex justify-between text-sm">
+      <p><strong>Quantity:</strong></p>
+      <p>{invoiceData.Quantity}</p>
+    </div>
+    <div className="flex justify-between text-sm">
+      <p><strong>Price per Unit:</strong></p>
+      <p>${invoiceData.ProductPrice}</p>
+    </div>
+    <div className="flex justify-between text-sm border-t pt-4 mt-4">
+      <p><strong>Total Amount:</strong></p>
+      <p className="font-bold">${invoiceData.TotalLineAmount}</p>
+    </div>
+  </div>
+
+  {/* Close Button */}
+  <div className="mt-6 text-center">
+    <button
+      onClick={onClose}
+      className="bg-gray-800 rounded-lg hover:bg-gray-700 text-white py-2 px-6 border shadow transition"
+    >
+      Close
+    </button>
+  </div>
+</div>
+
   );
 };
 
