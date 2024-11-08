@@ -324,7 +324,7 @@ const navigate = useNavigate();
         <XAxis dataKey="vendor" /> {/* Change vendorName to vendor */}
         <YAxis />
         <Tooltip />
-        <Bar dataKey="totalStock" fill="#82ca9d" />
+        <Bar dataKey="totalStock" fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
   </div>

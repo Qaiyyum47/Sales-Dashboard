@@ -9,7 +9,7 @@ const Sidebar = () => {
 
     const navItems = [
         { name: 'Dashboard', icon: <MdDashboard />, path: '/dashboard' },
-        { name: 'Products', icon: <FaBox />, path: '/products' },
+        { name: 'Inventory', icon: <FaBox />, path: '/products' },
         { name: 'Vendors', icon: <FaUserFriends />, path: '/vendors' },
         { name: 'Customers', icon: <FaUser />, path: '/customers' },
         { name: 'Salesman', icon: <FaClipboard />, path: '/salesmen' },
@@ -31,7 +31,7 @@ const Sidebar = () => {
                             className={`flex items-center py-3 px-4 rounded-lg transition-colors duration-200 
                                 ${location.pathname === path ? 'bg-gray-700 text-indigo-300' : 'hover:bg-gray-800'}`}
                         >
-                            {icon}
+                              {icon}
                             <span className="ml-3 text-base">{name}</span>
                         </Link>
                     </li>

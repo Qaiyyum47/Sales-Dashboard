@@ -265,7 +265,7 @@ const Products = () => {
 
   return (
     <div className="overflow-x-auto p-5">
-      <h1 className="text-3xl font-bold">Products</h1>
+      <h1 className="text-3xl font-bold">Inventory</h1>
       <div className="mt-1 mb-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold">All Products</h1>
         <div className="flex items-center space-x-2">
