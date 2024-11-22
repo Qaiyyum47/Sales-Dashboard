@@ -1,4 +1,4 @@
-# My React App with Node.js Backend and MySQL
+# Sales Dashboard App with Node.js Backend and MySQL
 
 This project is a full-stack web application consisting of a **React** frontend, a **Node.js/Express** backend, and a **MySQL** database.
 
@@ -12,8 +12,6 @@ This project is a full-stack web application consisting of a **React** frontend,
   - [4. Start the Backend Server](#4-start-the-backend-server)
   - [5. Build and Run the React Frontend](#5-build-and-run-the-react-frontend)
   - [6. Access the Application](#6-access-the-application)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
 
 ## Requirements
 
