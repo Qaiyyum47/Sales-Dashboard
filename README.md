@@ -20,7 +20,6 @@ A **full-stack web application** for managing sales data, vendors, and customer 
 ## **Features**
 - **Dynamic Sales Dashboard** – Displays real-time revenue, stock levels, and order status.
 - **CRUD Operations** – Manage products, vendors, customers, and sales records.
-- **Secure Authentication** – Implements user authentication and role-based access.
 - **RESTful API** – Backend services built with Express.js for seamless data handling.
 - **Data Persistence** – MySQL integration for structured and scalable storage.
 - **Responsive UI** – Designed with Tailwind CSS for a clean and modern look.
